@@ -3,21 +3,21 @@
 A_TcpServer *tcp = [[A_TcpServer alloc] init]; <br>
 [tcp loginTcpServerIP:ip地址 port:端口 Success:^{
 } failure:^{
-}];
-//发送单聊信息等，
-NSDictionary *objc1 = @{
-                            @"eventId":[NSString stringWithFormat:@"%d",SINGLECHAT_MSGID],
-                            @"SingleChatDto":@{
-                                    @"msgTime":time,
-                                    @"msgContent":[objc objectForKey:@"msgContent"],
-                                    @"msgType":@(msgType),
-                                    @"msgFrom":GetUserInfo.userId,
-                                    @"msgTo":self.sessionId,
-                                    @"chatType":@"1"
-                                    },
-                            @"msgId":[A_Util getRandomStringWithNum:32]
-                            };
-[tcp tcpRequestAPIWithObject:objc1  Completion:^(id response, NSError *error) {
+}];  <br>
+//发送单聊信息等， <br>
+NSDictionary *objc1 = @{ <br>
+                            @"eventId":[NSString stringWithFormat:@"%d",SINGLECHAT_MSGID], <br>
+                            @"SingleChatDto":@{ <br>
+                                    @"msgTime":time, <br>
+                                    @"msgContent":[objc objectForKey:@"msgContent"], <br>
+                                    @"msgType":@(msgType), <br>
+                                    @"msgFrom":GetUserInfo.userId, <br>
+                                    @"msgTo":self.sessionId, <br>
+                                    @"chatType":@"1" <br>
+                                    }, <br>
+                            @"msgId":[A_Util getRandomStringWithNum:32] <br>
+                            }; <br>
+[tcp tcpRequestAPIWithObject:objc1  Completion:^(id response, NSError *error) { <br>
 
 }];
 

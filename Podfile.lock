@@ -1,0 +1,20 @@
+PODS:
+  - Protobuf (3.21.12)
+  - ProtocolBuffers (1.9.11)
+
+DEPENDENCIES:
+  - Protobuf
+  - ProtocolBuffers
+
+SPEC REPOS:
+  trunk:
+    - Protobuf
+    - ProtocolBuffers
+
+SPEC CHECKSUMS:
+  Protobuf: 120350fc38646e2dedc26f49ecba778184ea1de2
+  ProtocolBuffers: d509225eb2ea43d9582a59e94348fcf86e2abd65
+
+PODFILE CHECKSUM: a1ed083b44b88dc0157cc075ab00ff2b8b89d4c9
+
+COCOAPODS: 1.15.2

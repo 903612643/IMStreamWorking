@@ -133,6 +133,91 @@ A_SuperAPI文件 <br>
     
 }<br>
 
+A_APISchedule调度中心文件<br>
+//注册接口<br>
+- (BOOL)registerApi:(id<A_APIScheduleProtocol>)api objc:(id)objc<br>
+{<br>
+    NSDictionary *objcDict = objc;<br>
+    _msgId = [objcDict objectForKey:@"msgId"];<br>
+    __block BOOL registSuccess = NO;<br>
+    dispatch_sync(self.apiScheduleQueue, ^{<br>
+        if (![api analysisReturnData])<br>
+        {<br>
+            registSuccess = NO;<br>
+        }<br>
+        //请求接口有数据返回,api协议作为value，msgId作为key放入请求表中<br>
+        [self->_apiRequestMap setObject:api forKey:[objcDict objectForKey:@"msgId"]];<br>
+        registSuccess = YES;<br>
+    });<br>
+    return registSuccess;<br>
+}<br>
+//请求超时<br>
+- (void)registerTimeoutApi:(id<A_APIScheduleProtocol>)api objc:(id)objc;<br>
+{<br>
+    double delayInSeconds = [api requestTimeOutTimeInterval];<br>
+    if (delayInSeconds == 0) {return;}<br>
+    NSDictionary *objcDict = objc;<br>
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));<br>
+    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){<br>
+        if ([[self->_apiRequestMap allKeys] containsObject:[objcDict objectForKey:@"msgId"]])<br>
+        {<br>
+            [[A_SundriesCenter instance] pushTaskToSerialQueue:^{<br>
+                RequestCompletion completion = [(A_SuperAPI*)api completion];<br>
+                NSError* error = [NSError errorWithDomain:@"请求超时" code:Timeout userInfo:nil];<br>
+                dispatch_sync(dispatch_get_main_queue(), ^{<br>
+                    if (completion) {<br>
+                        completion(nil,error);<br>
+                    }<br>
+                });<br>
+                
+            }];<br>
+        }<br>
+    });<br>
+
+}<br>
+
+//接收数据，返回是否主动请求返回的数据还是被动监听返回的数据<br>
+- (void)receiveServerData:(NSData*)data forDataType:(ServerDataType)dataType<br>
+{<br>
+    dispatch_async(self.apiScheduleQueue, ^{<br>
+        //根据key去调用注册api的completion<br>
+        id<A_APIScheduleProtocol> api = self->_apiRequestMap[dataType.msgId];<br>
+        if (api)<br>
+        {<br>
+            RequestCompletion completion = [(A_SuperAPI*)api completion];<br>
+            Analysis analysis = [api analysisReturnData];<br>
+            id response = analysis(data);<br>
+            [self->_apiRequestMap removeObjectForKey:dataType.msgId];<br>
+            dispatch_async(dispatch_get_main_queue(), ^{<br>
+                @try {<br>
+                    completion(response,nil);<br>
+                }<br>
+                @catch (NSException *exception) {<br>
+                    NSLog(@"completion,response is nil");<br>
+                }<br>
+            });<br>
+        } else<br>
+        {<br>
+            id<A_APIUnrequestScheduleProtocol> unrequestAPI = self->_apiResponseMap[MAP_RESPONE_KEY];<br>
+            if (unrequestAPI)<br>
+            {<br>
+                UnrequestAPIAnalysis unrequestAnalysis = [unrequestAPI unrequestAnalysis];<br>
+                id object = unrequestAnalysis(data);<br>
+                ReceiveData received = [(A_UnrequestSuperAPI*)unrequestAPI receivedData];<br>
+                dispatch_async(dispatch_get_main_queue(), ^{<br>
+                    @try {<br>
+                        received(object,nil);<br>
+                    }<br>
+                    @catch (NSException *exception) {<br>
+                        NSLog(@"completion,response is nil");<br>
+                    }<br>
+                });<br>
+            }<br>
+            
+        }<br>
+    });<br>
+  }<br>
+
     
 
 

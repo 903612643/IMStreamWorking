@@ -1,5 +1,5 @@
 # IMStreamWorking 使用详解
-//连接服务器
+//连接服务器<br>
 A_TcpServer *tcp = [[A_TcpServer alloc] init]; <br>
 [tcp loginTcpServerIP:ip地址 port:端口 Success:^{<br>
 } failure:^{<br>
